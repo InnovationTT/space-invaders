@@ -4,7 +4,7 @@
 
 <script>
 import {defineComponent, ref, onMounted} from 'vue'
-import { Ship, TestBlock, AlienGreenCrab } from './entities.js'
+import { Ship, TestBlock, AlienGreenCrab, ShipBullet } from './entities.js'
 
 export default defineComponent({
     name: 'Game',
@@ -19,7 +19,6 @@ export default defineComponent({
         }
 
         onMounted(() => {
-            console.log("starting...");
             // get context2d of canvas
             const ctx = myCanvas.value.getContext('2d');
             const canvasWidth = myCanvas.value.width;
@@ -28,13 +27,12 @@ export default defineComponent({
             // initialize game variables
             const ship = new Ship(canvasWidth/2, canvasHeight-50);
             const testblock = new TestBlock(canvasWidth/2 + 100, canvasHeight-250);
-            const alien1 = new AlienGreenCrab(canvasWidth/2 - 100, canvasHeight-250);
 
-            const aliens = [];
+            const entities = [ship];
             for (let row = 0; row < 5; row++){
                 for (let col = 0; col < 10; col++){
                     const alien = new AlienGreenCrab(125+col * 40, 25+row * 40);
-                    aliens.push(alien);
+                    entities.push(alien);
                 }
             }
 
@@ -61,7 +59,7 @@ export default defineComponent({
                     return;
                 }
                 
-                // ship movement
+                // ship controls
                 if (keys['d'] && ship.x < canvasWidth-ship.WH*ship.scale){
                     ship.move('right');
                 } else if (keys['a'] && ship.x > 0){
@@ -70,16 +68,20 @@ export default defineComponent({
                     ship.move('up');
                 } else if (keys['s'] && ship.y < canvasHeight-ship.WH*ship.scale){
                     ship.move('down');
+                } else if (keys[' '] && ship.TUNB <= 0) {
+                    ship.TUNB = 50;
+                    entities.push(ship.fireBullet());
                 }
 
                 // clear canvas and redraw
                 frameCount = 0;
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                ship.update(ctx);
-                aliens.forEach((alien) => {alien.update(ctx)});
-                if(collision(ship, testblock)){
-                    console.log("collision detected!");
-                }
+                entities.forEach((entity) => {
+                    entity.update(ctx)
+                    if (entity instanceof ShipBullet){
+                        console.log("bullet")
+                    }
+                });
                 window.requestAnimationFrame(step);
             }
             

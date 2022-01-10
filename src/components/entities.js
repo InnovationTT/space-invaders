@@ -1,4 +1,4 @@
-export class Entity {
+class Entity {
     constructor(x, y){
         this.isAlive = true;
         this.x = x;
@@ -27,6 +27,11 @@ export class Entity {
     }
 
     update(ctx) {
+        // check if alive
+        if (this.y - this.height*this.scale < 0){
+            this.isAlive = false;
+        }
+        // update hitbox
         this.hitboxLeft = this.x;
         this.hitboxRight = this.x+this.width*this.scale;
         this.hitboxUp = this.y;
@@ -39,6 +44,36 @@ export class Entity {
 
 }
 
+class Projectile extends Entity {
+    constructor(x, y){
+        super(x,y)
+        this.damage = 1;
+        this.direction = undefined;
+    }
+}
+
+export class ShipBullet extends Projectile {
+    constructor(x, y){
+        super(x,y)
+        this.width = 2;
+        this.height = 8;
+        this.speed = 5;
+        this.direction = "up";
+    }
+
+    draw(ctx) {
+        let img = new Image();
+        img.src = require('../assets/pico8_invaders_sprites_LARGE.png');
+        ctx.drawImage(img, 3, 16, this.width , this.height , this.x, this.y, this.width*this.scale, this.height*this.scale);
+    }
+
+    update(ctx) {
+        this.move(this.direction);
+        super.update(ctx);
+        this.draw(ctx);
+    }
+}
+
 export class Ship extends Entity{
     constructor(x, y){
         super(x,y);
@@ -47,6 +82,13 @@ export class Ship extends Entity{
         this.height = this.WH;
         this.x -= this.width/2;
         this.y -= this.height/2;
+        this.TUNB = 0; // ticks/time until next bullet
+    }
+
+    fireBullet() {
+        const bulletx = this.x + (this.width/2 - 1)*this.scale;
+        const bullety = this.y+ (this.height/2 - 8)*this.scale;
+        return new ShipBullet(bulletx, bullety);
     }
 
     draw(ctx) {
@@ -56,6 +98,7 @@ export class Ship extends Entity{
     }
 
     update(ctx) {
+        this.TUNB -= 3;
         super.update(ctx);
         this.draw(ctx);
     }
@@ -70,6 +113,17 @@ export class AlienGreenCrab extends Entity{
         this.height = this.WH;
         this.x -= this.width/2;
         this.y -= this.height/2;
+        this.intervalLength = 210;
+        this.intervalMoved = this.intervalLength/2; // this alien should oscillate between moving right and left, start at half since its moved half the screen essentially
+        this.moveDirection = "none";
+        this.changeDirection = true;
+        this.isEnemy = true;
+        //console.log("alien constructed!");
+    }
+
+    move(direction){
+        super.move(direction);
+        this.intervalMoved += this.speed;
     }
 
     draw(ctx) {
@@ -79,6 +133,21 @@ export class AlienGreenCrab extends Entity{
     }
 
     update(ctx) {
+        if(this.intervalMoved < this.intervalLength && this.changeDirection){
+            if(this.moveDirection == "none" || this.moveDirection == "left"){
+                this.moveDirection = "right";
+            } else if(this.moveDirection == "right"){
+                this.moveDirection = "left";         
+            }
+            this.changeDirection = false;
+          
+        } else if (this.intervalMoved >= this.intervalLength) {
+            this.y += this.height;
+            this.intervalMoved = 0;
+            this.changeDirection = true;
+        }        
+     
+        this.move(this.moveDirection);
         super.update(ctx);
         this.draw(ctx);
     }
