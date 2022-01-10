@@ -19,6 +19,7 @@ export default defineComponent({
         }
 
         onMounted(() => {
+            console.log("starting...");
             // get context2d of canvas
             const ctx = myCanvas.value.getContext('2d');
             const canvasWidth = myCanvas.value.width;
