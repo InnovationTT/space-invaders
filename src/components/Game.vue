@@ -34,7 +34,6 @@ export default defineComponent({
         const status = ref('');
         const loggedInUserName = ref('Guest');
         const currentUserStatus = ref('');
-        const avatarUrl = ref('');
         const provider = new GoogleAuthProvider();
         const db = getFirestore();
         const auth = getAuth();
@@ -55,7 +54,7 @@ export default defineComponent({
 
         async function init($event) {   
             $event.target.blur();
-            await deleteDoc(doc(db, "scores", "Jane Doe"));
+            console.log("playing game");
             if(!playing){
                 playing = true;
                 //event.target.blur();
@@ -65,7 +64,7 @@ export default defineComponent({
             const canvasHeight = myCanvas.value.height;
 
             // initialize game variables
-
+            let killedAll = false;    // killed all enemies?
             const ship = new Ship(canvasWidth/2, canvasHeight-50);
             const testblock = new TestBlock(canvasWidth/2 + 100, canvasHeight-250);
 
@@ -112,11 +111,23 @@ export default defineComponent({
                     if(loggedInUserName.value != ''){
                         const docRef = doc(db, "scores", loggedInUserName.value);
                         const docSnap = await getDoc(docRef);
-                        const highScore = docSnap.data()["score"];
+                        let highScore = 0;
+                        try {
+                            highScore = docSnap.data().score;
+                        } catch (error) {
+                            console.log("new user!")
+                        }
 
-                        if(score.value > highScore){saveScore(loggedInUserName.value, score.value, avatarUrl.value);}
+                        if(score.value > highScore || highScore == 0){
+                            saveScore(loggedInUserName.value, score.value);
+                        }
+                        
                         
                     }
+                    return;
+                } else if (killedAll){
+                    alert("You destroyed all alien invaders!");
+                    saveScore(loggedInUserName.value, score.value);
                     return;
                 }
 
@@ -137,8 +148,12 @@ export default defineComponent({
                 // clear canvas and redraw
                 frameCount = 0;
                 ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                killedAll = true;
                 entities.forEach((entity, index) => {
                     entity.update(ctx)
+                    if (entity.isEnemy){
+                        killedAll = false;
+                    }
                     if (!entity.isAlive){
                         entities.splice(index, 1);
                     }
@@ -177,7 +192,6 @@ export default defineComponent({
         // get the currently signed in user 
     onAuthStateChanged(auth, (user) => {
       loggedInUserName.value = user?.displayName || '';
-      avatarUrl.value = user?.photoURL || '';
     });
     
     async function signIn(){
@@ -185,12 +199,11 @@ export default defineComponent({
       const result = await signInWithPopup(auth, provider);    
     }
 
-    async function saveScore(id, score, avatarUrl) {
-      //console.log("Saving score to Cloud Firestore");
+    async function saveScore(id, score) {
+      console.log("Saving score to Cloud Firestore");
       // Add a new document in collection "statuses"
       await setDoc(doc(db, "scores",  id), {
         score: score,
-        avatarUrl: avatarUrl,
         name: loggedInUserName.value
       });
     }
@@ -201,7 +214,7 @@ export default defineComponent({
     });
 
         return {
-            myCanvas, score, init, signIn, score, loggedInUserName, saveScore, avatarUrl, scores
+            myCanvas, score, init, signIn, loggedInUserName, saveScore, scores
         }
     }
 
