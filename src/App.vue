@@ -20,6 +20,9 @@ export default defineComponent({
       messagingSenderId: "952290141043",
       appId: "1:952290141043:web:471134ec4c99addc0fdb06"
     };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
   }
 })
 </script>

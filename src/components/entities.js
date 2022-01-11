@@ -28,8 +28,9 @@ class Entity {
 
     update(ctx) {
         // check if alive
-        if (this.y - this.height*this.scale < 0){
+        if (this.y + (this.height*this.scale) < 0 || this.y > 480){
             this.isAlive = false;
+            //console.log("entity died!")
         }
         // update hitbox
         this.hitboxLeft = this.x;
@@ -74,6 +75,29 @@ export class ShipBullet extends Projectile {
     }
 }
 
+export class AlienBullet extends Projectile {
+    constructor(x, y){
+        super(x,y)
+        this.width = 2;
+        this.height = 3;
+        this.speed = 3;
+        this.direction = "down";
+        this.isEnemy = true;
+    }
+
+    draw(ctx) {
+        let img = new Image();
+        img.src = require('../assets/pico8_invaders_sprites_LARGE.png');
+        ctx.drawImage(img, 19, 19, this.width , this.height , this.x, this.y, this.width*this.scale, this.height*this.scale);
+    }
+
+    update(ctx) {
+        this.move(this.direction);
+        super.update(ctx);
+        this.draw(ctx);
+    }
+}
+
 export class Ship extends Entity{
     constructor(x, y){
         super(x,y);
@@ -108,6 +132,7 @@ export class Ship extends Entity{
 export class AlienGreenCrab extends Entity{
     constructor(x, y){
         super(x,y);
+        this.speed = 1;
         this.WH = 8;  
         this.width = this.WH;
         this.height = this.WH;
@@ -118,12 +143,19 @@ export class AlienGreenCrab extends Entity{
         this.moveDirection = "none";
         this.changeDirection = true;
         this.isEnemy = true;
+        this.shootChance = 0.001; // probability of alien shooting, checked every game tick
         //console.log("alien constructed!");
     }
 
     move(direction){
         super.move(direction);
         this.intervalMoved += this.speed;
+    }
+
+    fireBullet() {
+        const bulletx = this.x + (this.width/2 - 1)*this.scale;
+        const bullety = this.y + (this.height*this.scale);
+        return new AlienBullet(bulletx, bullety);
     }
 
     draw(ctx) {
@@ -133,6 +165,7 @@ export class AlienGreenCrab extends Entity{
     }
 
     update(ctx) {
+        // update movement
         if(this.intervalMoved < this.intervalLength && this.changeDirection){
             if(this.moveDirection == "none" || this.moveDirection == "left"){
                 this.moveDirection = "right";
@@ -145,7 +178,8 @@ export class AlienGreenCrab extends Entity{
             this.y += this.height;
             this.intervalMoved = 0;
             this.changeDirection = true;
-        }        
+        } 
+        
      
         this.move(this.moveDirection);
         super.update(ctx);
