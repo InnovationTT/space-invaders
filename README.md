@@ -1,7 +1,4 @@
 # Space Invaders (space-invaders)
 
-A simple game of space invaders using Quasar, VueJS, and Firebase
+A simple game of space invaders using Quasar, VueJS, and Firebase. Check it out here https://space-invaders-8e9d9.web.app
 
-# Credits
-
-Huge thanks to Ángel☕#3171 for answering many of my questions on Quasar, VueJS, and Firebase.
