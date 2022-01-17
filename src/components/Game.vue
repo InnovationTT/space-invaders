@@ -20,7 +20,7 @@
     </div>
 </template>
 
-<script>
+<script lang = "ts">
 import { nextTick } from 'process';
 import { defineComponent, ref, onMounted } from 'vue'
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
@@ -37,11 +37,11 @@ export default defineComponent({
         const provider = new GoogleAuthProvider();
         const db = getFirestore();
         const auth = getAuth();
-        const scores = ref([]);
+        const scores = ref<any[]>([]);
         
 
         // game stuff
-        const myCanvas = ref(null);
+        const myCanvas = ref<HTMLCanvasElement>(null);
         const keys = {
             w: false,
             a: false,
@@ -68,7 +68,7 @@ export default defineComponent({
             const ship = new Ship(canvasWidth/2, canvasHeight-50);
             const testblock = new TestBlock(canvasWidth/2 + 100, canvasHeight-250);
 
-            const entities = [ship];
+            let entities: any[] = [ship];
             for (let row = 0; row < 5; row++){
                 for (let col = 0; col < 10; col++){
                     const alien = new AlienGreenCrab(125+col * 40, 25+row * 40);
@@ -77,11 +77,11 @@ export default defineComponent({
             }
 
             // get keyboard input
-            document.addEventListener('keydown', function(event) {
+            document.addEventListener('keydown', function(event: KeyboardEvent) {
                 event.preventDefault();
                 keys[event.key] = true;
             });
-            document.addEventListener('keyup', function(event) {
+            document.addEventListener('keyup', function(event: KeyboardEvent) {
                 event.preventDefault();
                 keys[event.key] = false;
             });
@@ -177,10 +177,10 @@ export default defineComponent({
             }
             
             function init() {
-                ctx.webkitImageSmoothingEnabled = false;
-                ctx.mozImageSmoothingEnabled = false;
+                //ctx.webkitImageSmoothingEnabled = false;
+                //ctx.mozImageSmoothingEnabled = false;
                 ctx.imageSmoothingEnabled = false;
-                step()
+                step();
             }
 
             init();
